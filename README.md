@@ -90,7 +90,10 @@ Este projeto foi realizado para a disciplina **Estrutura de Dados Orientada a Ob
 
 ## 👥 Integrantes
 
-*(Adicione os nomes aqui, se desejar.)*
+- Thiago José Barbosa Menezes de Oliveira (tjbmo)
+- Breno José Ramos da Silva (bjrs)
+- Leonardo Gonçalves Sobral (lgs5)
+
 
 ---
 
