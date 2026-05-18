@@ -1,4 +1,4 @@
-#include "collectible.hpp"
+#include "Collectible.hpp"
 #include <algorithm>
 
 Base::Base() {}
