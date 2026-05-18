@@ -95,3 +95,15 @@ void Player::setPosition(float newX, float newY) {
 void Player::setWalking(bool walking) {
     esta_andando = walking;
 }
+
+void Player::setJumping(bool jumping) {
+    esta_andando = jumping;
+}
+
+void Player::setX(int novox){
+    x = novox;
+}
+
+void Player::setY(int novoy){
+    y = novoy;
+}

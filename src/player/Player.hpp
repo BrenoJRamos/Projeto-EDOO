@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PLAYER_HPP
+#define PLAYER_HPP
 
 // Classe do player
 
@@ -47,4 +48,9 @@ public:
     // Setters
     void setPosition(float newX, float newY);
     void setWalking(bool walking);
+    void setJumping(bool jumping);
+    void setX(int novox);
+    void setY(int novoy);
 };
+
+#endif
