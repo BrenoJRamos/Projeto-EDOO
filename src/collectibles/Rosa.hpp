@@ -1,4 +1,8 @@
-#include "collectible.hpp"
+#ifndef ROSA_HPP
+#define ROSA_HPP
+#include "Collectible.hpp"
+#include <map>
+#include <string>
 
 class Rosa : public Base {
 public:
@@ -6,3 +10,5 @@ public:
         contadores["rosa"] += 1;
     }
 };
+
+#endif
