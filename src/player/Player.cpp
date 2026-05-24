@@ -16,10 +16,10 @@ Player::Player() {
     velocidadeY = 0.0f;
 
     //gravidade
-    gravidade = 60.0f;
+    gravidade = 1200.0f;
 
     //força do pulo
-    forca_pulo = -840.0f;
+    forca_pulo = -500.0f;
 
     //estados iniciais
     esta_pulando = false;
