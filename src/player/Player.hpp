@@ -1,6 +1,8 @@
 #ifndef PLAYER_HPP
 #define PLAYER_HPP
 
+#include "../utils/Rect.hpp"
+
 // Classe do player
 
 class Player {
@@ -44,6 +46,9 @@ public:
     float get_velocidadeX() const;
     bool get_esta_pulando() const;
     bool get_esta_andando() const;
+
+    // hitbox como Rect
+    Rect get_rect() const;
 
     // Setters
     void setPosition(float newX, float newY);

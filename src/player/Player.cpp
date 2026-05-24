@@ -86,6 +86,11 @@ bool Player::get_esta_andando() const {
     return esta_andando;
 }
 
+// hitbox
+Rect Player::get_rect() const {
+    return Rect(x, y, largura, altura);
+}
+
 // setters
 void Player::setPosition(float newX, float newY) {
     x = newX;
