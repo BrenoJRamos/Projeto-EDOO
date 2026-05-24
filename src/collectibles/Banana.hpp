@@ -1,14 +1,13 @@
 #ifndef BANANA_HPP
 #define BANANA_HPP
 #include "Collectible.hpp"
-#include <map>
-#include <string>
+#include "../utils/Stats.hpp"
 
 class Banana : public Base {
 public:
-    static void efeito_banana(std::map<std::string, int>& contadores) {
-        contadores["rosa"] = 0;      
-        contadores["banana"] += 1;   
+    // efeito ao colidir com banana
+    static void efeito_banana(Stats& stats) {
+        stats.adicionarBanana();
     }
 };
 

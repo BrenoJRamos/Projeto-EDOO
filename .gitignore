@@ -1,0 +1,15 @@
+# binarios compilados
+gisele_game
+gisele_game.exe
+*.o
+*.out
+
+# arquivos de editor
+.vscode/
+*.swp
+*.swo
+*~
+
+# arquivos de sistema
+.DS_Store
+Thumbs.db
