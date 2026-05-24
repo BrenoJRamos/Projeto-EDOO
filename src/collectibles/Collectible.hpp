@@ -5,14 +5,11 @@
 #include <string>
 #include <map>
 #include <random>
-
-struct Rect {
-    float x, y, w, h;
-};
+#include "../utils/Rect.hpp"
 
 struct ColetavelData {
     Rect rect;
-    int sprite_index; 
+    int sprite_index;
 };
 
 class Base {

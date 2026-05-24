@@ -1,13 +1,13 @@
 #ifndef ROSA_HPP
 #define ROSA_HPP
 #include "Collectible.hpp"
-#include <map>
-#include <string>
+#include "../utils/Stats.hpp"
 
 class Rosa : public Base {
 public:
-    static void efeito_rosa(std::map<std::string, int>& contadores) {
-        contadores["rosa"] += 1;
+    // efeito ao colidir com rosa
+    static void efeito_rosa(Stats& stats) {
+        stats.adicionarRosa();
     }
 };
 

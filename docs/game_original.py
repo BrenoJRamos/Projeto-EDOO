@@ -1,3 +1,10 @@
+# ================================================================
+# Arquivo original em Python do jogo
+# "Gisele Bundchen vs As Forcas do Mal"
+# Mantido aqui apenas como referencia da logica que foi portada
+# para C++ no diretorio src/. NAO faz parte do projeto C++ e NAO
+# eh compilado nem executado pelo build.
+# ================================================================
 import pygame
 from pygame.locals import *
 from sys import exit
