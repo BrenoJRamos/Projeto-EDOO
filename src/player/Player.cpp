@@ -15,8 +15,8 @@ Player::Player() {
     velocidadeX = 8.0f;
     velocidadeY = 0.0f;
 
-    //gravidade
-    gravidade = 60.0f;
+    //gravidade (forte o suficiente para o pulo durar ~1 segundo)
+    gravidade = 2000.0f;
 
     //força do pulo
     forca_pulo = -840.0f;
@@ -55,6 +55,11 @@ void Player::update_fisica(float deltaTime) {
         esta_pulando = false;
     }
 
+}
+
+// hitbox atual da personagem (posição + tamanho)
+Rect Player::get_rect() const {
+    return Rect{x, y, largura, altura};
 }
 
 // getters
@@ -97,7 +102,7 @@ void Player::setWalking(bool walking) {
 }
 
 void Player::setJumping(bool jumping) {
-    esta_andando = jumping;
+    esta_pulando = jumping;
 }
 
 void Player::setX(int novox){

@@ -1,6 +1,8 @@
 #ifndef PLAYER_HPP
 #define PLAYER_HPP
 
+#include <Collectible.hpp> // para o tipo Rect (usado em get_rect)
+
 // Classe do player
 
 class Player {
@@ -15,26 +17,29 @@ private:
     float altura;
 
     // Física
-    float velocidadeX;   // velocidade horizontal
-    float velocidadeY;   // velocidade vertical
-    float gravidade;     // força da gravidade
-    float forca_pulo;   // força do pulo
+    float velocidadeX;   
+    float velocidadeY; 
+    float gravidade;     
+    float forca_pulo; 
 
     // Estados
-    bool esta_pulando;    // sinaliza se está pulando
-    bool esta_andando;    // sinaliza se está andando 
+    bool esta_pulando;
+    bool esta_andando;    
 
     // Chão
     float chao;
 
 public:
 
-    // Construtor
+    //Construtor
     Player();
 
-    // funções principais
+    //funções principais
     void jump();
     void update_fisica(float deltaTime);
+
+    //hitbox da personagem (equivale ao gisele.get_rect() do Python)
+    Rect get_rect() const;
 
     // getters
     float get_X() const;
