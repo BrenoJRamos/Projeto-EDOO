@@ -40,7 +40,7 @@ bool Game::jogo(){
 
     map<string, int> contadores = {{"banana", 0}, {"camera", 0}, {"rosa", 0}};
 
-    //flags so para o auto-pulo: marca quando ja pegou cada tipo (nao precisa pegar de novo)
+    //flags pro autopulo, pra que ele pegue uma de cada
     bool pegou_rosa = false, pegou_banana = false, pegou_camera = false;
 
     //cria os 3 coletaveis iniciais
