@@ -15,7 +15,7 @@ Player::Player() {
     velocidadeX = 8.0f;
     velocidadeY = 0.0f;
 
-    //gravidade (forte o suficiente para o pulo durar ~1 segundo)
+    //gravidade
     gravidade = 2000.0f;
 
     //força do pulo
