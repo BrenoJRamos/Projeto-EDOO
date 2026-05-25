@@ -88,7 +88,7 @@ bool Game::jogo(){
         }
 
         bool estava_pulando = gisele.get_esta_pulando();
-        gisele.update_fisica(delta_time); 
+        gisele.update_fisica(); 
 
         //mostra a fisica do pulo quadro a quadro
         if (gisele.get_esta_pulando()) {

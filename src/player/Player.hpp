@@ -36,7 +36,7 @@ public:
 
     //funções principais
     void jump();
-    void update_fisica(float deltaTime);
+    void update_fisica(float deltaTime = 1.0f/30.0f);
 
     //hitbox da personagem (equivale ao gisele.get_rect() do Python)
     Rect get_rect() const;
