@@ -40,6 +40,9 @@ bool Game::jogo(){
 
     map<string, int> contadores = {{"banana", 0}, {"camera", 0}, {"rosa", 0}};
 
+    //flags so para o auto-pulo: marca quando ja pegou cada tipo (nao precisa pegar de novo)
+    bool pegou_rosa = false, pegou_banana = false, pegou_camera = false;
+
     //cria os 3 coletaveis iniciais
     vector<ColetavelData> coletaveis;
     for (int contador = 0; contador < 3; contador++){
@@ -74,7 +77,9 @@ bool Game::jogo(){
             for (auto& coletavel : coletaveis) {
                 bool rente_ao_chao = coletavel.rect.y >= 560; //altura 565 = nivel da gisele
                 bool chegando = coletavel.rect.x > gisele.get_X() && coletavel.rect.x < gisele.get_X() + 90;
-                if (rente_ao_chao && chegando) {
+                //so pula se ja pegou um desse tipo; senao deixa colidir para coletar 1 de cada
+                bool ja_pegou = (coletavel.tipo == "rosa" && pegou_rosa == true) || (coletavel.tipo == "banana" && pegou_banana == true) || (coletavel.tipo == "camera" && pegou_camera == true);
+                if (rente_ao_chao && chegando && ja_pegou) {
                     gisele.jump();
                     cout << "gisele pulou para desviar de uma " << coletavel.tipo << "!\n";
                     break;
@@ -87,7 +92,7 @@ bool Game::jogo(){
 
         //mostra a fisica do pulo quadro a quadro
         if (gisele.get_esta_pulando()) {
-            cout << "  pulando y=" << (int)gisele.get_Y() << "\n";
+            cout << "pulando y=" << (int)gisele.get_Y() << "\n";
         } else if (estava_pulando) {
             cout << "gisele aterrissou y=" << (int)gisele.get_Y() << "\n";
         }
@@ -138,10 +143,13 @@ bool Game::jogo(){
             if (gisele_rect.colliderect(coletavel.rect)){ //bateu no coletavel
                 if (coletavel.tipo == "rosa"){
                     Rosa::efeito_rosa(contadores);
+                    pegou_rosa = true;
                 } else if (coletavel.tipo == "banana"){
                     Banana::efeito_banana(contadores);
+                    pegou_banana = true;
                 } else if (coletavel.tipo == "camera"){
                     Camera::efeito_camera(contadores);
+                    pegou_camera = true;
                 }
 
                 cout << "coletou " << coletavel.tipo << " | banana=" << contadores["banana"] << " camera=" << contadores["camera"] << " rosa=" << contadores["rosa"] << "\n";
@@ -172,8 +180,8 @@ bool Game::jogo(){
             cout << "\ngame over\n";
             cout << "distancia: " << distancia_metros << " m\n";
             cout << "banana=" << contadores["banana"]
-                 << " camera=" << contadores["camera"]
-                 << " rosa=" << contadores["rosa"] << "\n";
+                 << "camera=" << contadores["camera"]
+                 << "rosa=" << contadores["rosa"] << "\n";
             cout << "andando: " << (gisele.get_esta_andando() ? "sim" : "nao") << "\n";
             return false; //não joga de novo
         }
@@ -182,8 +190,8 @@ bool Game::jogo(){
             cout << "\nvitoria\n";
             cout << "distancia: " << distancia_metros << " m\n";
             cout << "banana=" << contadores["banana"]
-                 << " camera=" << contadores["camera"]
-                 << " rosa=" << contadores["rosa"] << "\n";
+                 << "camera=" << contadores["camera"]
+                 << "rosa=" << contadores["rosa"] << "\n";
             return false;
         }
     }
