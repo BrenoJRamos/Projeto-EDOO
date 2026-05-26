@@ -144,12 +144,12 @@ gisele.setPosition(100, 500); // usa um SETTER do Player
 Aqui o `Game` **comanda** o `Player` por meio de métodos públicos — não mexe direto nos
 atributos da Gisele (eles são privados).
 
-**Mostra a ficha usando GETTERS:**
+**Mostra a ficha usando o `operator<<`:**
 ```cpp
-cout << "posicao inicial: x=" << gisele.get_X() << " y=" << gisele.get_Y() << "\n";
-cout << "hitbox: largura=" << gisele.get_largura() << " altura=" << gisele.get_altura() << "\n";
+cout << gisele << "\n\n";   // usa o operator<< sobrecarregado do Player
 ```
-Os `get_*()` leem os atributos privados de forma controlada → **encapsulamento na prática**.
+O `operator<<` do `Player` (definido no `Player.hpp`) imprime a ficha lendo os atributos
+pelos getters por dentro. Isso é **sobrecarga de operador** somada a **encapsulamento**.
 
 **Contadores e flags:**
 ```cpp
@@ -191,19 +191,21 @@ if (!finalizando && !gisele.get_esta_pulando()) {
                         (coletavel.tipo == "banana" && pegou_banana == true) ||
                         (coletavel.tipo == "camera" && pegou_camera == true);
         if (rente_ao_chao && chegando && ja_pegou) {
-            gisele.jump();          // manda a Gisele pular
+            Player* p = &gisele;    // PONTEIRO para o objeto gisele
+            p->jump();              // chama jump() pelo ponteiro (-> em vez de .)
             break;
         }
     }
 }
 ```
 Enquanto a flag do tipo for `false`, ela **não pula** e deixa colidir (coletando 1 daquele
-tipo). Depois que `pegou_*` vira `true`, volta a pular naquele tipo.
+tipo). Depois que `pegou_*` vira `true`, volta a pular naquele tipo. O pulo é feito por um
+**ponteiro para objeto** (`Player* p = &gisele;`), usando `->` em vez de `.`.
 
 2. **Física do pulo:**
 ```cpp
 bool estava_pulando = gisele.get_esta_pulando();
-gisele.update_fisica(delta_time);   // aplica gravidade/pulo
+gisele.update_fisica();   // sem argumento: usa o valor padrao do parametro (1/30 s)
 ```
 
 3. **Distância e marcos:** `distancia_pixels += 7`, converte para metros e imprime de 100 em 100.
@@ -217,19 +219,28 @@ gisele.update_fisica(delta_time);   // aplica gravidade/pulo
 for (auto& coletavel : coletaveis){
     if (gisele_rect.colliderect(coletavel.rect)){   // bateu?
         if (coletavel.tipo == "rosa"){
-            Rosa::efeito_rosa(contadores);    pegou_rosa   = true;
+            Rosa rosa;
+            Base& item = rosa;          // referencia da BASE para um objeto Rosa
+            item.efeito(contadores);    // chamada POLIMORFICA -> Rosa::efeito
+            pegou_rosa = true;
         } else if (coletavel.tipo == "banana"){
-            Banana::efeito_banana(contadores); pegou_banana = true;
+            Banana banana;
+            Base& item = banana;
+            item.efeito(contadores);    // chamada POLIMORFICA -> Banana::efeito
+            pegou_banana = true;
         } else if (coletavel.tipo == "camera"){
-            Camera::efeito_camera(contadores); pegou_camera = true;
+            Camera::efeito_camera(contadores);  // Camera ainda usa metodo ESTATICO
+            pegou_camera = true;
         }
         ...
         coletavel = base_engine.gerar_coletavel(...); // gera outro no lugar
     }
 }
 ```
-`colliderect` (do `Rect`) detecta a batida; o efeito de cada item vem da **classe filha**
-correspondente (Rosa/Banana/Camera). O tipo é decidido com `if/else` sobre a string `tipo`.
+`colliderect` (do `Rect`) detecta a batida. Para **rosa** e **banana**, cria-se o objeto,
+aponta-se uma **referência da base** (`Base&`) e chama-se `efeito` de forma **polimórfica**:
+como `efeito` é `virtual`, o programa escolhe sozinho a versão da classe filha. A **camera**
+continua usando o método **estático** `Camera::efeito_camera`.
 
 7. **Fim do jogo:**
 ```cpp
@@ -260,7 +271,7 @@ private:
 public:
     Player();                         // construtor
     void jump();                      // ações
-    void update_fisica(float deltaTime);
+    void update_fisica(float deltaTime = 1.0f/30.0f);  // PARAMETRO COM VALOR PADRAO
     Rect get_rect() const;            // hitbox atual
 
     // getters (leem atributos privados)
@@ -274,15 +285,29 @@ public:
     void setWalking(bool walking);
     void setX(int novox);
 };
+
+// SOBRECARGA DE OPERADOR: permite imprimir um Player direto com cout (cout << gisele;)
+inline std::ostream& operator<<(std::ostream& os, const Player& p) {
+    os << "posicao inicial: x=" << p.get_X() << " y=" << p.get_Y() << "\n";
+    os << "hitbox: largura=" << p.get_largura() << " altura=" << p.get_altura() << "\n";
+    os << "velocidade horizontal: " << p.get_velocidadeX() << "\n";
+    os << "andando: " << (p.get_esta_andando() ? "sim" : "nao");
+    return os;
+}
 ```
 
 - **Todos os dados são `private`** → ninguém de fora altera `x`, `y`, etc. diretamente.
 - O acesso é só pelos **getters/setters** públicos. Esse é o exemplo **mais claro de
   encapsulamento** do projeto.
 - **`const`** nos getters → indica que o método **não altera** o objeto.
+- **`update_fisica(float deltaTime = 1.0f/30.0f)`** → tem um **parâmetro com valor padrão**:
+  pode ser chamado como `update_fisica()` (usa 1/30) ou com um valor próprio. O default fica
+  só no `.hpp` (na declaração); o `.cpp` não repete o `=`.
+- **`operator<<`** → função livre (não-membro) que usa os getters; é `inline` por estar no
+  header. Por isso o `Game` consegue fazer `cout << gisele;`.
 
-> **Conceitos:** *encapsulamento forte*, *const-correctness*, *abstração* (de fora você
-> usa `jump()` sem saber como a física funciona por dentro).
+> **Conceitos:** *encapsulamento forte*, *const-correctness*, *parâmetro com valor padrão*,
+> *sobrecarga de operador*, *abstração* (de fora você usa `jump()` sem saber a física por dentro).
 
 ---
 
@@ -373,15 +398,21 @@ public:
     float distancia_minima_x = 250;
 
     Base();
+
+    virtual void efeito(std::map<std::string, int>&) {}   // METODO VIRTUAL (corpo vazio)
+
     ColetavelData gerar_coletavel(const std::vector<float>& alturas_ocupadas,
                                   const std::vector<float>& xs_ocupados,
                                   int largura_tela);
 };
 ```
+- O **`efeito` é `virtual`**: é a base do polimorfismo. `Rosa` e `Banana` o sobrescrevem
+  (`override`). O corpo é vazio (e **não** pode ser virtual puro `= 0`, senão o objeto
+  `base_engine` não poderia ser criado).
 
 > **Conceitos:** *abstração* (o `Rect` esconde a matemática da colisão num método),
-> *struct vs class* (struct = membros públicos por padrão; class = privado por padrão),
-> *valores default em membros*.
+> *método virtual* (base do polimorfismo), *struct vs class* (struct = membros públicos por
+> padrão; class = privado por padrão), *valores default em membros*.
 
 ---
 
@@ -424,35 +455,43 @@ ColetavelData Base::gerar_coletavel(...) {
 
 ### 3.8 `Banana.hpp`, `Camera.hpp`, `Rosa.hpp` — os coletáveis (HERANÇA)
 
-**Rosa:**
+**Rosa** (sobrescreve `efeito` + tem destrutor):
 ```cpp
 class Rosa : public Base {            // HERANÇA: Rosa é uma Base
 public:
-    static void efeito_rosa(std::map<std::string, int>& contadores) {
+    void efeito(std::map<std::string, int>& contadores) override {  // SOBRESCRITA do virtual
         contadores["rosa"] += 1;
+    }
+
+    ~Rosa() {                          // DESTRUTOR: roda quando o objeto e destruido
+        std::cout << "objeto Rosa destruido\n";
     }
 };
 ```
 
-**Banana** (com efeito especial — zera a rosa):
+**Banana** (sobrescreve `efeito` — zera a rosa — + destrutor):
 ```cpp
 class Banana : public Base {
 public:
-    static void efeito_banana(std::map<std::string, int>& contadores) {
+    void efeito(std::map<std::string, int>& contadores) override {
         contadores["rosa"] = 0;       // efeito especial!
         contadores["banana"] += 1;
+    }
+
+    ~Banana() {
+        std::cout << "objeto Banana destruido\n";
     }
 };
 ```
 
-**Camera** (tem estado e métodos extras do efeito flash):
+**Camera** (continua com método **estático** + estado/métodos do flash):
 ```cpp
 class Camera : public Base {
 public:
     bool flash = false;
     float flash_raio = 0;
     // ...
-    static void efeito_camera(std::map<std::string, int>& contadores) {
+    static void efeito_camera(std::map<std::string, int>& contadores) {  // ESTATICO
         contadores["camera"] += 1;
     }
     void iniciar_flash(int largura_tela, int altura_tela) { ... }
@@ -461,13 +500,17 @@ public:
 ```
 
 - **`class Banana : public Base`** → cada coletável **herda** de `Base` (relação "é um").
+- **`Rosa` e `Banana`** sobrescrevem o método **virtual** `efeito` com `override` → quando
+  chamado por uma referência da base (`Base&`), roda a versão certa (**polimorfismo**).
+- **`Rosa` e `Banana` têm destrutor** (`~Rosa`, `~Banana`): como os objetos são criados de
+  verdade na coleta, o destrutor **executa** (imprime a mensagem) ao sair de escopo.
+- **A `Camera` mantém o método `static`** (`efeito_camera`), chamado pelo nome da classe,
+  sem criar objeto.
 - O parâmetro **`std::map<...>& contadores`** é passado **por referência** (`&`): o método
   altera o mapa original, não uma cópia.
-- Os efeitos são **`static`**: chamados pelo nome da classe (`Rosa::efeito_rosa(...)`),
-  sem precisar de um objeto.
 
-> **Conceitos:** *herança* (Banana/Camera/Rosa **herdam** de Base), *métodos estáticos*,
-> *passagem por referência*, *especialização* (cada filha define seu próprio efeito).
+> **Conceitos:** *herança*, *polimorfismo* (`virtual` + `override` chamado via `Base&`),
+> *destrutor*, *métodos estáticos* (Camera), *passagem por referência*.
 
 ---
 
@@ -479,23 +522,33 @@ public:
 | **Encapsulamento** | Esconder dados; acesso via métodos | `Player` (tudo `private` + getters/setters); `Game` (atributos `private`) |
 | **Abstração** | Usar sem conhecer o "como" | `gisele.jump()`, `Rect::colliderect()`, `base_engine.gerar_coletavel()` |
 | **Herança** | Relação "é um" | `Banana/Camera/Rosa : public Base` (nos `.hpp` dos coletáveis) |
+| **Polimorfismo** | Escolher a versão certa em runtime | `efeito` virtual na `Base`, `override` em `Rosa`/`Banana`, chamado via `Base&` no `Game.cpp` |
 | **Composição** | Relação "tem um" | `Game` tem `Player gisele` e `Base base_engine` (`Game.hpp`) |
 | **Construtor** | Inicializa o objeto | `Game::Game()`, `Player::Player()`, `Base::Base()` |
+| **Destrutor** | Roda ao destruir o objeto | `~Rosa()` e `~Banana()` (`Rosa.hpp`, `Banana.hpp`) |
+| **Sobrecarga de operador** | Dar novo sentido a um símbolo | `operator<<` do `Player` (`Player.hpp`) |
 | **Métodos const** | Não alteram o objeto | getters de `Player` (`get_X() const`, etc.) |
-| **Métodos estáticos** | Pertencem à classe, não ao objeto | `Rosa::efeito_rosa`, `Banana::efeito_banana`, `Camera::efeito_camera` |
+| **Métodos estáticos** | Pertencem à classe, não ao objeto | `Camera::efeito_camera` |
+| **Ponteiro para objeto** | Variável que guarda endereço de objeto | `Player* p = &gisele;` no auto-pulo (`Game.cpp`) |
+| **Parâmetro com valor padrão** | Argumento opcional | `update_fisica(float deltaTime = 1.0f/30.0f)` (`Player.hpp`) |
+| **Passagem por referência** | Passar sem copiar / alterar original | `efeito(std::map<...>&)`, `gerar_coletavel(const std::vector<float>&)` |
 | **struct × class** | Default público × privado | `struct Rect/ColetavelData` × `class Game/Player/Base` |
 
 ### Sobre polimorfismo
 
-O projeto usa **herança**, mas **não usa polimorfismo de tempo de execução** (não há
-funções `virtual` nem chamadas pela classe base). O tipo de cada coletável é decidido
-com `if/else` sobre a string `tipo`, no bloco de colisão do `Game.cpp`:
+O projeto **usa polimorfismo de tempo de execução** para os efeitos de `Rosa` e `Banana`.
+A `Base` declara `efeito` como **`virtual`**, e as filhas o sobrescrevem com **`override`**.
+No bloco de colisão do `Game.cpp`, o efeito é chamado por uma **referência da base** (`Base&`),
+e o programa escolhe sozinho a versão correta:
 
 ```cpp
-if (coletavel.tipo == "rosa")        Rosa::efeito_rosa(contadores);
-else if (coletavel.tipo == "banana") Banana::efeito_banana(contadores);
-else if (coletavel.tipo == "camera") Camera::efeito_camera(contadores);
+Rosa rosa;
+Base& item = rosa;          // referencia da base apontando para uma Rosa
+item.efeito(contadores);    // chama Rosa::efeito automaticamente (polimorfismo)
 ```
+
+A **`Camera`** é a exceção: ela ainda usa o método **estático** `Camera::efeito_camera`,
+chamado diretamente pelo nome da classe (não participa do polimorfismo).
 
 ---
 
@@ -504,6 +557,9 @@ else if (coletavel.tipo == "camera") Camera::efeito_camera(contadores);
 - **STL (Standard Template Library):** `std::vector`, `std::map`, `std::string`.
 - **Referências (`&`):** `for (auto& coletavel : coletaveis)` evita copiar; parâmetros
   `const std::vector<float>&` passam sem copiar.
+- **`virtual` / `override`:** polimorfismo nos efeitos de `Rosa` e `Banana`.
+- **`inline`:** no `operator<<` do `Player` (definido no header).
+- **Ponteiros:** `Player* p = &gisele;` no auto-pulo, acessando o método com `->`.
 - **`auto`:** dedução automática de tipo nos `for`-each.
 - **Aleatoriedade moderna:** `std::mt19937`, `std::random_device`, `std::uniform_int_distribution`.
 - **Include guards:** `#ifndef/#define/#endif` em todos os `.hpp`.
