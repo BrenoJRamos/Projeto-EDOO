@@ -11,6 +11,32 @@ coletáveis gerados, os pulos, a distância percorrida e o resultado final.
 
 ---
 
+## Como Compilar e Executar
+
+Requer um compilador com suporte a **C++17** (`g++`). Nenhuma biblioteca externa é
+necessária — apenas a biblioteca padrão.
+
+A partir da pasta raiz do projeto (`Projeto-EDOO`), o comando abaixo compila e já executa:
+
+```bash
+g++ -std=c++17 src/main.cpp src/core/Game.cpp src/player/Player.cpp src/collectibles/Collectible.cpp -Isrc/core -Isrc/player -Isrc/collectibles -o jogo && ./jogo
+```
+
+Depois de compilado, para rodar de novo basta:
+
+```bash
+./jogo
+```
+
+Detalhes do comando:
+- Apenas os 4 arquivos `.cpp` são compilados (os `.hpp` entram pelos `#include`).
+- `-Isrc/core -Isrc/player -Isrc/collectibles` indicam onde achar os headers.
+- `-o jogo` define o nome do executável; o `&& ./jogo` roda só se a compilação der certo.
+
+> Em outros sistemas, o mesmo comando vale trocando o nome do executável (ex.: `-o jogo.exe`).
+
+---
+
 ## Sobre o Jogo
 
 A Gisele corre automaticamente pela passarela enquanto três tipos de coletáveis vêm
@@ -76,61 +102,6 @@ src/
 - **Métodos estáticos** — efeito da `Camera`.
 - **Outros** — métodos e parâmetros `const`, passagem por referência, parâmetro com valor
   padrão, ponteiro para objeto e uso de containers da STL (`vector`, `map`).
-
----
-
-## Requisitos
-
-- Compilador com suporte a **C++17** (`g++` >= 9, `clang++` ou MinGW no Windows).
-- Nenhuma biblioteca externa — apenas a biblioteca padrão.
-
----
-
-## Como Compilar
-
-Os flags `-I` indicam ao compilador onde achar os headers do projeto. Apenas os 4 arquivos
-`.cpp` são compilados (os `.hpp` entram automaticamente pelos `#include`).
-
-### Linux / WSL2 / macOS
-
-A partir da pasta raiz do projeto (`Projeto-EDOO`):
-
-```bash
-g++ -std=c++17 \
-    src/main.cpp \
-    src/core/Game.cpp \
-    src/player/Player.cpp \
-    src/collectibles/Collectible.cpp \
-    -Isrc/core -Isrc/player -Isrc/collectibles \
-    -o gisele_game
-```
-
-> No macOS, pode trocar `g++` por `clang++` — os argumentos são os mesmos.
-
-### Windows (MinGW)
-
-```bash
-g++ -std=c++17 src/main.cpp src/core/Game.cpp src/player/Player.cpp src/collectibles/Collectible.cpp -Isrc/core -Isrc/player -Isrc/collectibles -o gisele_game.exe
-```
-
----
-
-## Como Executar
-
-### Linux / WSL2 / macOS
-
-```bash
-./gisele_game
-```
-
-### Windows
-
-```bash
-gisele_game.exe
-```
-
-O programa roda a simulação sozinho do início ao fim e imprime o resultado (vitória ou
-game over) no terminal.
 
 ---
 
