@@ -1,123 +1,123 @@
 # Gisele Bündchen vs As Forças do Mal (C++)
 
-Projeto da disciplina Estrutura de Dados Orientada a Objetos (EDOO) do CIn/UFPE.
+Projeto da disciplina **Estrutura de Dados Orientada a Objetos (EDOO)** do CIn/UFPE.
 O grupo escolheu portar o jogo "Gisele Bündchen vs As Forças do Mal" (originalmente
-escrito em Python com Pygame) para C++ puro, sem dependências externas, com
-foco em modelagem OO. A versão C++ roda inteiramente no terminal, com renderização
-ASCII animada e input não-bloqueante.
+escrito em Python) para **C++ puro**, sem dependências externas, com foco em modelagem
+orientada a objetos.
+
+A versão C++ é uma **simulação de terminal**: o jogo roda sozinho (sem entrada do
+jogador) e imprime no console o que vai acontecendo — a ficha da personagem, os
+coletáveis gerados, os pulos, a distância percorrida e o resultado final.
 
 ---
 
 ## Sobre o Jogo
 
-Side-scroller runner: Gisele corre automaticamente pela passarela. O jogador
-pressiona SPACE (ou W) para pular. O cenário cospe três tipos de coletáveis:
-bananas (B) e câmeras (C) contam como hit, rosas (R) somam pontos. Levou
-3 hits, perdeu. Chegou ao fim da passarela, ganhou. A cada 10 segundos os
-coletáveis ficam mais rápidos, até travar em uma velocidade máxima.
+A Gisele corre automaticamente pela passarela enquanto três tipos de coletáveis vêm
+da direita para a esquerda:
+
+- **Banana** — conta como hit e zera o contador de rosas.
+- **Câmera** — conta como hit.
+- **Rosa** — soma pontos.
+
+A lógica controla os pulos automaticamente (a Gisele coleta um de cada tipo e depois
+passa a pular para desviar). O jogo termina de duas formas:
+
+- **Game over** — ao acumular 3 bananas ou 3 câmeras.
+- **Vitória** — ao chegar ao fim da passarela (~500 metros).
+
+---
+
+## Estrutura do Projeto
+
+```text
+src/
+├── main.cpp                     → ponto de entrada (função main)
+├── core/
+│   ├── Game.hpp                 → interface da classe Game
+│   └── Game.cpp                 → loop principal e regras da simulação
+├── player/
+│   ├── Player.hpp               → interface da personagem
+│   └── Player.cpp               → física da Gisele (gravidade, pulo, posição)
+└── collectibles/
+    ├── Collectible.hpp          → Rect, ColetavelData e a classe Base
+    ├── Collectible.cpp          → geração aleatória de coletáveis
+    ├── Banana.hpp               → coletável Banana (herda de Base)
+    ├── Camera.hpp               → coletável Camera (herda de Base)
+    └── Rosa.hpp                 → coletável Rosa  (herda de Base)
+```
 
 ---
 
 ## Arquitetura
 
-| Classe | Arquivo | Responsabilidade |
-|--------|---------|------------------|
-| Rect | utils/Rect.hpp | Hitbox AABB com detecção de sobreposição |
-| Vector2 | utils/Vector2.hpp | Vetor 2D com operações matemáticas |
-| Stats | utils/Stats.hpp | Contadores de jogo e condições de fim |
-| Player | player/Player.hpp/cpp | Física da Gisele (gravidade, pulo, posição) |
-| Base | collectibles/Collectible.hpp/cpp | Fábrica de coletáveis com spawn sem sobreposição |
-| Banana | collectibles/Banana.hpp | Efeito de colisão: banana++ e reset de rosas |
-| Camera | collectibles/Camera.hpp | Efeito de colisão: camera++ e flash visual |
-| Rosa | collectibles/Rosa.hpp | Efeito de colisão: rosa++ |
-| CollisionSystem | systems/CollisionSystem.hpp/cpp | Detecção AABB entre Player e coletáveis |
-| Spawner | systems/Spawner.hpp/cpp | Movimento, respawn e aceleração dos coletáveis |
-| GameState | core/GameState.hpp | Enum com estados (RODANDO, FINALIZANDO, VITORIA, DERROTA) |
-| Game | core/Game.hpp/cpp | Loop principal: update, física, transição de estados |
-| TerminalRenderer | core/TerminalRenderer.hpp/cpp | Render ASCII, input não-bloqueante, telas de UI |
+| Classe / Tipo | Arquivo | Responsabilidade |
+|---|---|---|
+| Rect | collectibles/Collectible.hpp | Hitbox AABB com detecção de colisão (`colliderect`) |
+| ColetavelData | collectibles/Collectible.hpp | Dados de um coletável (posição + tipo) |
+| Base | collectibles/Collectible.hpp/.cpp | Geração de coletáveis sem sobreposição + efeito (virtual) |
+| Banana | collectibles/Banana.hpp | Efeito: `banana++` e zera as rosas |
+| Camera | collectibles/Camera.hpp | Efeito (estático): `camera++` e lógica de flash |
+| Rosa | collectibles/Rosa.hpp | Efeito: `rosa++` |
+| Player | player/Player.hpp/.cpp | Física da Gisele (gravidade, pulo, posição, hitbox) |
+| Game | core/Game.hpp/.cpp | Loop principal: auto-pulo, movimento, colisões e estados |
+
+---
+
+## Conceitos de POO aplicados
+
+- **Encapsulamento** — atributos privados no `Player` e no `Game`, acessados por getters/setters.
+- **Herança** — `Banana`, `Camera` e `Rosa` herdam de `Base`.
+- **Polimorfismo** — método `efeito` virtual na `Base`, sobrescrito (`override`) em `Banana`
+  e `Rosa` e chamado por referência da base (`Base&`).
+- **Composição** — o `Game` contém um `Player` e uma `Base`.
+- **Construtor e destrutor** — incluindo destrutores em `Banana` e `Rosa`.
+- **Sobrecarga de operador** — `operator<<` para imprimir um `Player`.
+- **Métodos estáticos** — efeito da `Camera`.
+- **Outros** — métodos e parâmetros `const`, passagem por referência, parâmetro com valor
+  padrão, ponteiro para objeto e uso de containers da STL (`vector`, `map`).
 
 ---
 
 ## Requisitos
 
-### Linux / WSL2 (Ubuntu)
-
-- g++ com suporte a C++17
-- Instalar se necessário:
-  ```bash
-  sudo apt update && sudo apt install -y build-essential
-  ```
-- Verificar:
-  ```bash
-  g++ --version   # precisa ser >= 9.0
-  ```
-
-### Windows (MinGW via MSYS2)
-
-- Instalar MSYS2: https://www.msys2.org
-- No terminal MSYS2 MinGW64:
-  ```bash
-  pacman -S mingw-w64-x86_64-gcc
-  ```
-- Verificar:
-  ```bash
-  g++ --version
-  ```
-- Observação: no Windows nativo o modo raw do terminal pode ter comportamento
-  diferente. Recomendado rodar via WSL2 para melhor experiência.
+- Compilador com suporte a **C++17** (`g++` >= 9, `clang++` ou MinGW no Windows).
+- Nenhuma biblioteca externa — apenas a biblioteca padrão.
 
 ---
 
 ## Como Compilar
 
-Os flags `-I` apontam pro g++ onde achar os headers do projeto. Nenhuma
-biblioteca externa é necessária, só a stdlib.
+Os flags `-I` indicam ao compilador onde achar os headers do projeto. Apenas os 4 arquivos
+`.cpp` são compilados (os `.hpp` entram automaticamente pelos `#include`).
 
-### Linux / WSL2
+### Linux / WSL2 / macOS
+
+A partir da pasta raiz do projeto (`Projeto-EDOO`):
 
 ```bash
 g++ -std=c++17 \
+    src/main.cpp \
+    src/core/Game.cpp \
     src/player/Player.cpp \
     src/collectibles/Collectible.cpp \
-    src/systems/CollisionSystem.cpp \
-    src/systems/Spawner.cpp \
-    src/core/Game.cpp \
-    src/core/TerminalRenderer.cpp \
-    src/main.cpp \
-    -Isrc \
-    -Isrc/utils \
-    -Isrc/player \
-    -Isrc/collectibles \
-    -Isrc/systems \
-    -Isrc/core \
+    -Isrc/core -Isrc/player -Isrc/collectibles \
     -o gisele_game
 ```
 
-### Windows (MinGW, terminal MSYS2 MinGW64)
+> No macOS, pode trocar `g++` por `clang++` — os argumentos são os mesmos.
+
+### Windows (MinGW)
 
 ```bash
-g++ -std=c++17 \
-    src/player/Player.cpp \
-    src/collectibles/Collectible.cpp \
-    src/systems/CollisionSystem.cpp \
-    src/systems/Spawner.cpp \
-    src/core/Game.cpp \
-    src/core/TerminalRenderer.cpp \
-    src/main.cpp \
-    -Isrc \
-    -Isrc/utils \
-    -Isrc/player \
-    -Isrc/collectibles \
-    -Isrc/systems \
-    -Isrc/core \
-    -o gisele_game.exe
+g++ -std=c++17 src/main.cpp src/core/Game.cpp src/player/Player.cpp src/collectibles/Collectible.cpp -Isrc/core -Isrc/player -Isrc/collectibles -o gisele_game.exe
 ```
 
 ---
 
 ## Como Executar
 
-### Linux / WSL2
+### Linux / WSL2 / macOS
 
 ```bash
 ./gisele_game
@@ -126,23 +126,11 @@ g++ -std=c++17 \
 ### Windows
 
 ```bash
-./gisele_game.exe
+gisele_game.exe
 ```
 
-Ao iniciar o programa imprime a arquitetura (todas as classes), depois entra
-na tela de início. Pressione SPACE para começar. Durante a partida, SPACE ou
-W pula e Q sai a qualquer momento.
-
----
-
-## Controles
-
-| Tecla | Ação |
-|-------|------|
-| SPACE | Pular |
-| W | Pular (alternativo) |
-| Q | Sair do jogo |
-| S / N | Jogar de novo (na tela final) |
+O programa roda a simulação sozinho do início ao fim e imprime o resultado (vitória ou
+game over) no terminal.
 
 ---
 
@@ -151,13 +139,14 @@ W pula e Q sai a qualquer momento.
 - Thiago José Barbosa Menezes de Oliveira (tjbmo)
 - Breno José Ramos da Silva (bjrs)
 - Leonardo Gonçalves Sobral (lgs5)
+- João Carlos Melo Brennand de Souza Mendes (jcmbsm)
 
 ---
 
 ## Disciplina
 
-Este projeto foi realizado para a disciplina Estrutura de Dados Orientada a
-Objetos (EDOO), aplicando conceitos como:
+Este projeto foi realizado para a disciplina **Estrutura de Dados Orientada a Objetos
+(EDOO)**, aplicando conceitos como:
 
 - Abstração
 - Encapsulamento
