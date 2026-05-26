@@ -1,10 +1,11 @@
 #ifndef CAMERA_HPP
 #define CAMERA_HPP
 #include "Collectible.hpp"
-#include "../utils/Stats.hpp"
+#include <map>
+#include <string>
 #include <cmath>
 
-class Camera : public Base {
+class Camera : public Base{
 public:
     bool flash = false;
     float flash_raio = 0;
@@ -13,22 +14,21 @@ public:
     int flash_tempo_tela_total = 0;
     int flash_duracao_tela_total = 30;
 
-    // efeito ao colidir com camera
-    static void efeito_camera(Stats& stats) {
-        stats.adicionarCamera();
+    static void efeito_camera(std::map<std::string, int>& contadores){
+        contadores["camera"] += 1;
     }
 
-    void iniciar_flash(int largura_tela, int altura_tela) {
+    void iniciar_flash(int largura_tela, int altura_tela){
         flash = true;
         flash_raio = 0;
         flash_raio_max = std::hypot(largura_tela, altura_tela);
         flash_tempo_tela_total = 0;
     }
 
-    void atualizar_logica_flash() {
+    void atualizar_logica_flash(){
         if (!flash) return;
 
-        if (flash_raio < flash_raio_max) {
+        if (flash_raio < flash_raio_max){
             flash_raio += flash_velocidade;
         } else {
             flash_tempo_tela_total += 1;

@@ -16,10 +16,10 @@ Player::Player() {
     velocidadeY = 0.0f;
 
     //gravidade
-    gravidade = 1200.0f;
+    gravidade = 2000.0f;
 
     //força do pulo
-    forca_pulo = -500.0f;
+    forca_pulo = -840.0f;
 
     //estados iniciais
     esta_pulando = false;
@@ -57,6 +57,11 @@ void Player::update_fisica(float deltaTime) {
 
 }
 
+// hitbox atual da personagem (posição + tamanho)
+Rect Player::get_rect() const {
+    return Rect{x, y, largura, altura};
+}
+
 // getters
 float Player::get_X() const {
     return x;
@@ -86,11 +91,6 @@ bool Player::get_esta_andando() const {
     return esta_andando;
 }
 
-// hitbox
-Rect Player::get_rect() const {
-    return Rect(x, y, largura, altura);
-}
-
 // setters
 void Player::setPosition(float newX, float newY) {
     x = newX;
@@ -102,7 +102,7 @@ void Player::setWalking(bool walking) {
 }
 
 void Player::setJumping(bool jumping) {
-    esta_andando = jumping;
+    esta_pulando = jumping;
 }
 
 void Player::setX(int novox){

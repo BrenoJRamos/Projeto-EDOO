@@ -1,70 +1,197 @@
-#include "Game.hpp"
+#include <Game.hpp>
+#include <Banana.hpp>
+#include <Camera.hpp>
+#include <Rosa.hpp>
+#include <iostream>
+#include <vector>
+#include <map>
+#include <string>
+using namespace std;
 
-Game::Game(int largura, int altura)
-    : largura_tela(largura),
-      altura_tela(altura),
-      spawner(largura),
-      stats(500),
-      estado(GameState::RODANDO),
-      flash_ativado(false),
-      delta_time(1.0f / FPS)
-{
-    gisele.setPosition(100.0f, 525.0f);
-    spawner.inicializar(coletaveis);
+//construtor pro tamanhao da tela
+Game::Game(){
+    altura_tela = 700;
+    largura_tela = 900;
 }
 
-void Game::processarInput() {
-    // input capturado pelo TerminalRenderer via leitura nao-bloqueante
-    // esse metodo existe pra fechar o ciclo update/render do loop
-}
+bool Game::jogo(){
 
-void Game::atualizar() {
-    if (estado != GameState::RODANDO && estado != GameState::FINALIZANDO)
-        return;
+    bool run = true; //jogo rodando
+    bool finalizando = false; //chegou perto do fim (no jogo original o cenario para de rolar)
+    bool perdeu = false;
+    bool transicao_final = false;//venceu
 
-    // fisica da Gisele
-    gisele.update_fisica(delta_time);
+    gisele.setPosition(100, 500); //posição inicial da gisele
 
-    // distancia anda sempre, mesmo no FINALIZANDO, pra cena de saida fluir
-    stats.avancarDistancia(PIXELS_POR_FRAME, PIXELS_POR_METRO);
+    //uso do getters pra mostrar os atributos
+    cout << "Gisele Bundchen VS As Forcas do Mal\n";
+    cout << "atributos da Gisele:\n";
+    cout << gisele << "\n\n"; 
 
-    if (estado == GameState::RODANDO) {
-        spawner.atualizar(coletaveis);
-        colisao.verificarColisao(gisele, coletaveis, stats, flash_ativado);
-        camera_obj.atualizar_logica_flash();
+    // distancia percorrida
+    int distancia_pixels = 0;
+    int pixels_por_metro = 20;
+    int meta_metros = 500;
+    int vel_coletavel = 7;
+
+
+    map<string, int> contadores = {{"banana", 0}, {"camera", 0}, {"rosa", 0}};
+
+    //flags pro autopulo, pra que ele pegue uma de cada
+    bool pegou_rosa = false, pegou_banana = false, pegou_camera = false;
+
+    //cria os 3 coletaveis iniciais
+    vector<ColetavelData> coletaveis;
+    for (int contador = 0; contador < 3; contador++){
+        vector<float> alturas_ocupadas; //alturas ja usadas pelos outros
+        vector<float> xs_ocupados; //posicoes x ja usadas pelos outros
+        for (auto& outro_coletavel : coletaveis) {
+            alturas_ocupadas.push_back(outro_coletavel.rect.y);
+            xs_ocupados.push_back(outro_coletavel.rect.x);
+        }
+        coletaveis.push_back(base_engine.gerar_coletavel(alturas_ocupadas, xs_ocupados, largura_tela));
     }
 
-    if (estado == GameState::FINALIZANDO) {
-        // cena final: gisele corre pra fora da tela
-        gisele.setX(gisele.get_X() + 5);
+    //mostra os coletaveis gerados
+    cout << "Coletaveis iniciais (gerados aleatoriamente):\n";
+    for (int i = 0; i < (int)coletaveis.size(); i++){
+        cout << "  [" << (i + 1) << "] tipo=" << coletaveis[i].tipo
+             << " x=" << (int)coletaveis[i].rect.x
+             << " altura=" << (int)coletaveis[i].rect.y << "\n";
     }
-}
+    cout << "\nComecou a corrida!\n\n";
 
-void Game::checarEstado() {
-    if (estado == GameState::RODANDO) {
-        if (stats.perdeu()) {
-            estado = GameState::DERROTA;
-        } else if (stats.venceu()) {
-            estado = GameState::FINALIZANDO;
+    Rect gisele_rect = gisele.get_rect(); //hitbox da gisele
+
+    int proximo_marco = 100; //imprime a distancia de 100 em 100 metros
+
+    //parte princiapl
+    while (run) {
+
+        //auto-pulo, onde pula para desviar de um coletavel rente ao chao
+        if (!finalizando && !gisele.get_esta_pulando()) {
+            for (auto& coletavel : coletaveis) {
+                bool rente_ao_chao = coletavel.rect.y >= 560; //altura 565 = nivel da gisele
+                bool chegando = coletavel.rect.x > gisele.get_X() && coletavel.rect.x < gisele.get_X() + 90;
+                //so pula se ja pegou um desse tipo; senao deixa colidir para coletar 1 de cada
+                bool ja_pegou = (coletavel.tipo == "rosa" && pegou_rosa == true) || (coletavel.tipo == "banana" && pegou_banana == true) || (coletavel.tipo == "camera" && pegou_camera == true);
+                if (rente_ao_chao && chegando && ja_pegou) {
+                    Player* p = &gisele;  
+                    p->jump();
+                    cout << "gisele pulou para desviar de uma " << coletavel.tipo << "!\n";
+                    break;
+                }
+            }
+        }
+
+        bool estava_pulando = gisele.get_esta_pulando();
+        gisele.update_fisica(); 
+
+        //mostra a fisica do pulo quadro a quadro
+        if (gisele.get_esta_pulando()) {
+            cout << "pulando y=" << (int)gisele.get_Y() << "\n";
+        } else if (estava_pulando) {
+            cout << "gisele aterrissou y=" << (int)gisele.get_Y() << "\n";
+        }
+
+        distancia_pixels += 7;                               
+        int distancia_metros = distancia_pixels / pixels_por_metro; //converte para metros
+
+        //marco de distancia
+        if (distancia_metros >= proximo_marco){
+            cout << proximo_marco << " metros percorridos\n";
+            proximo_marco += 100;
+        }
+
+        if (meta_metros <= distancia_metros - 50){ //chegou perto da meta
+            finalizando = true;
+        }
+
+        if (finalizando) {//cenario parou, gisele anda ate o fim
+            gisele.setX(gisele.get_X() + 5);
+            if (gisele.get_X() >= largura_tela){
+                run = false;  
+                transicao_final = true; 
+            }
+        }
+
+        // movimentacao dos coletaveis (so enquanto o cenario rola)
+        if (!finalizando){
+            for (auto& coletavel : coletaveis){
+                coletavel.rect.x -= vel_coletavel; //vem da direita para a esquerda
+
+                if (coletavel.rect.x + coletavel.rect.largura < 0){ //saiu pela esquerda
+                    vector<float> alturas_ocupadas;
+                    vector<float> xs_ocupados;
+                    for (auto& outro_coletavel : coletaveis){
+                        if (&outro_coletavel != &coletavel){ //ignora ele mesmo
+                            alturas_ocupadas.push_back(outro_coletavel.rect.y);
+                            xs_ocupados.push_back(outro_coletavel.rect.x);
+                        }
+                    }
+                    coletavel = base_engine.gerar_coletavel(alturas_ocupadas, xs_ocupados, largura_tela);
+                }
+            }
+            gisele_rect = gisele.get_rect(); //atualiza a hitbox enquanto corre
+        }
+
+        //colisõss
+        for (auto& coletavel : coletaveis){
+            if (gisele_rect.colliderect(coletavel.rect)){ //bateu no coletavel
+                if (coletavel.tipo == "rosa"){
+                    Rosa rosa;
+                    Base& item = rosa;
+                    item.efeito(contadores);
+                    pegou_rosa = true;
+                } else if (coletavel.tipo == "banana"){
+                    Banana banana;
+                    Base& item = banana;
+                    item.efeito(contadores);
+                    pegou_banana = true;
+                } else if (coletavel.tipo == "camera"){
+                    Camera::efeito_camera(contadores);
+                    pegou_camera = true;
+                }
+
+                cout << "coletou " << coletavel.tipo << " | banana=" << contadores["banana"] << " camera=" << contadores["camera"] << " rosa=" << contadores["rosa"] << "\n";
+
+                // gera um novo coletavel no lugar do que foi coletado
+                vector<float> alturas_ocupadas;
+                vector<float> xs_ocupados;
+                for (auto& outro_coletavel : coletaveis){
+                    if (&outro_coletavel != &coletavel){
+                        alturas_ocupadas.push_back(outro_coletavel.rect.y);
+                        xs_ocupados.push_back(outro_coletavel.rect.x);
+                    }
+                }
+                coletavel = base_engine.gerar_coletavel(alturas_ocupadas, xs_ocupados, largura_tela);
+            }
+        }
+
+        //fim do jogo
+        if (contadores["banana"] >= 3 || contadores["camera"] >= 3){
+            run = false;
+            perdeu = true; //bananas ou cameras demais leva pro game over
+        } else if (distancia_metros >= meta_metros - 50){
+            finalizando = true;
+        }
+
+        if (perdeu){
+            gisele.setWalking(false); //ela para de andar
+            cout << "\ngame over\n";
+            cout << "distancia: " << distancia_metros << " m\n";
+            cout << "banana=" << contadores["banana"] << " camera=" << contadores["camera"] << " rosa=" << contadores["rosa"] << "\n";
+            cout << "andando: " << (gisele.get_esta_andando() ? "sim" : "nao") << "\n";
+            return false; //não joga de novo
+        }
+
+        if (transicao_final){
+            cout << "\nvitoria\n";
+            cout << "distancia: " << distancia_metros << " m\n";
+            cout << "banana=" << contadores["banana"] << " camera=" << contadores["camera"] << " rosa=" << contadores["rosa"] << "\n";
+            return false;
         }
     }
 
-    if (estado == GameState::FINALIZANDO) {
-        if (gisele.get_X() >= largura_tela) {
-            estado = GameState::VITORIA;
-        }
-    }
-}
-
-bool Game::rodar() {
-    while (estado == GameState::RODANDO ||
-           estado == GameState::FINALIZANDO) {
-        processarInput();
-        atualizar();
-        checarEstado();
-        renderizar();  // no-op aqui, TerminalRenderer sobrescreve
-    }
-
-    // decisao de replay fica no TerminalRenderer (Prompt 5)
     return false;
 }
