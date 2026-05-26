@@ -26,10 +26,7 @@ bool Game::jogo(){
     //uso do getters pra mostrar os atributos
     cout << "Gisele Bundchen VS As Forcas do Mal\n";
     cout << "atributos da Gisele:\n";
-    cout << "posicao inicial: x=" << gisele.get_X() << " y=" << gisele.get_Y() << "\n";
-    cout << "hitbox: largura=" << gisele.get_largura() << " altura=" << gisele.get_altura() << "\n";
-    cout << "velocidade horizontal: " << gisele.get_velocidadeX() << "\n";
-    cout << "andando: " << (gisele.get_esta_andando() ? "sim" : "nao") << "\n\n";
+    cout << gisele << "\n\n"; 
 
     // distancia percorrida
     int distancia_pixels = 0;
@@ -57,10 +54,10 @@ bool Game::jogo(){
 
     //mostra os coletaveis gerados
     cout << "Coletaveis iniciais (gerados aleatoriamente):\n";
-    for (int indice = 0; indice < (int)coletaveis.size(); indice++){
-        cout << "  [" << (indice + 1) << "] tipo=" << coletaveis[indice].tipo
-             << " x=" << (int)coletaveis[indice].rect.x
-             << " altura=" << (int)coletaveis[indice].rect.y << "\n";
+    for (int i = 0; i < (int)coletaveis.size(); i++){
+        cout << "  [" << (i + 1) << "] tipo=" << coletaveis[i].tipo
+             << " x=" << (int)coletaveis[i].rect.x
+             << " altura=" << (int)coletaveis[i].rect.y << "\n";
     }
     cout << "\nComecou a corrida!\n\n";
 
@@ -70,7 +67,6 @@ bool Game::jogo(){
 
     //parte princiapl
     while (run) {
-        float delta_time = 1.0f / 30.0f; //tempo de cada quadro (sem relogio/GUI)
 
         //auto-pulo, onde pula para desviar de um coletavel rente ao chao
         if (!finalizando && !gisele.get_esta_pulando()) {
@@ -80,7 +76,8 @@ bool Game::jogo(){
                 //so pula se ja pegou um desse tipo; senao deixa colidir para coletar 1 de cada
                 bool ja_pegou = (coletavel.tipo == "rosa" && pegou_rosa == true) || (coletavel.tipo == "banana" && pegou_banana == true) || (coletavel.tipo == "camera" && pegou_camera == true);
                 if (rente_ao_chao && chegando && ja_pegou) {
-                    gisele.jump();
+                    Player* p = &gisele;  
+                    p->jump();
                     cout << "gisele pulou para desviar de uma " << coletavel.tipo << "!\n";
                     break;
                 }
@@ -142,10 +139,14 @@ bool Game::jogo(){
         for (auto& coletavel : coletaveis){
             if (gisele_rect.colliderect(coletavel.rect)){ //bateu no coletavel
                 if (coletavel.tipo == "rosa"){
-                    Rosa::efeito_rosa(contadores);
+                    Rosa rosa;
+                    Base& item = rosa;
+                    item.efeito(contadores);
                     pegou_rosa = true;
                 } else if (coletavel.tipo == "banana"){
-                    Banana::efeito_banana(contadores);
+                    Banana banana;
+                    Base& item = banana;
+                    item.efeito(contadores);
                     pegou_banana = true;
                 } else if (coletavel.tipo == "camera"){
                     Camera::efeito_camera(contadores);
@@ -179,9 +180,7 @@ bool Game::jogo(){
             gisele.setWalking(false); //ela para de andar
             cout << "\ngame over\n";
             cout << "distancia: " << distancia_metros << " m\n";
-            cout << "banana=" << contadores["banana"]
-                 << "camera=" << contadores["camera"]
-                 << "rosa=" << contadores["rosa"] << "\n";
+            cout << "banana=" << contadores["banana"] << " camera=" << contadores["camera"] << " rosa=" << contadores["rosa"] << "\n";
             cout << "andando: " << (gisele.get_esta_andando() ? "sim" : "nao") << "\n";
             return false; //não joga de novo
         }
@@ -189,9 +188,7 @@ bool Game::jogo(){
         if (transicao_final){
             cout << "\nvitoria\n";
             cout << "distancia: " << distancia_metros << " m\n";
-            cout << "banana=" << contadores["banana"]
-                 << "camera=" << contadores["camera"]
-                 << "rosa=" << contadores["rosa"] << "\n";
+            cout << "banana=" << contadores["banana"] << " camera=" << contadores["camera"] << " rosa=" << contadores["rosa"] << "\n";
             return false;
         }
     }

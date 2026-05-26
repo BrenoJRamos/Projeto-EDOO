@@ -2,6 +2,7 @@
 #define PLAYER_HPP
 
 #include <Collectible.hpp> // para o tipo Rect (usado em get_rect)
+#include <ostream>         // para o operator<< (impressao com cout)
 
 // Classe do player
 
@@ -57,5 +58,13 @@ public:
     void setX(int novox);
     void setY(int novoy);
 };
+
+inline std::ostream& operator<<(std::ostream& os, const Player& p){
+    os << "posicao inicial: x=" << p.get_X() << " y=" << p.get_Y() << "\n";
+    os << "hitbox: largura=" << p.get_largura() << " altura=" << p.get_altura() << "\n";
+    os << "velocidade horizontal: " << p.get_velocidadeX() << "\n";
+    os << "andando: " << (p.get_esta_andando() ? "sim" : "nao");
+    return os;
+}
 
 #endif

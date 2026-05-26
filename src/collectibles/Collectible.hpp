@@ -16,7 +16,7 @@ struct Rect {
     //bordas que apenas se tocam não colidem
     bool colliderect(const Rect& outro) const {
         return x < outro.x + outro.largura && x + largura > outro.x &&
-               y < outro.y + outro.altura && y + altura > outro.y;
+                y < outro.y + outro.altura && y + altura > outro.y;
     }
 };
 
@@ -33,6 +33,8 @@ public:
     float distancia_minima_x = 250;
 
     Base();
+
+    virtual void efeito(std::map<std::string, int>& contadores) {}
 
     //gera um novo coletavel sem sobrepor os que ja estao na tela.
     ColetavelData gerar_coletavel(const std::vector<float>& alturas_ocupadas, const std::vector<float>& xs_ocupados, int largura_tela);

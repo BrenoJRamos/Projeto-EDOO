@@ -3,11 +3,16 @@
 #include "Collectible.hpp"
 #include <map>
 #include <string>
+#include <iostream>
 
 class Rosa : public Base {
 public:
-    static void efeito_rosa(std::map<std::string, int>& contadores) {
+    void efeito(std::map<std::string, int>& contadores) override{
         contadores["rosa"] += 1;
+    }
+
+    ~Rosa(){
+        std::cout << "objeto Rosa destruido\n";
     }
 };
 
